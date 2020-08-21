@@ -18,8 +18,8 @@ To keep things simple [SQLite](https://www.sqlite.org/) is used as a database. A
 
 # Tips
 
-With `npm run start` [TS Node](https://github.com/TypeStrong/ts-node) is used to directly run the code. Normally you would have to transpile it first (you can do so with `npm run build`) but `TS-Node` will transpile files on the fly. 
-
-Database configuration is done in `ormconfig.json` and when you run the server with `TS Node` it will automatically be picked up and used for connection. You can also manually configure the connection directly in the code.
-
-If you want to transpile manually and run the transpiled code yourself (for example with `node build/index.js`) you'll have to provide database configuration otherwise, since the default conifugration points to the directory containing the `TypeScript` files for entities. See [the TypeORM docs](https://typeorm.io/#/using-ormconfig/which-configuration-file-is-used-by-typeorm) for more information.
+- With `npm run start` [TS Node](https://github.com/TypeStrong/ts-node) is used to directly run the code. Normally you would have to transpile it first (you can do so with `npm run build`) but `TS-Node` will transpile files on the fly. 
+- Database configuration is done in `ormconfig.json` and when you run the server with `TS Node` it will automatically be picked up and used for connection. You can also manually configure the connection directly in the code.
+- If you want to transpile manually and run the transpiled code yourself (for example with `node build/index.js`) you'll have to provide database configuration otherwise, since the default conifugration points to the directory containing the `TypeScript` files for entities. See [the TypeORM docs](https://typeorm.io/#/connection-options) for more information.
+- If `synchronize: true` is set in the TypeORM connection settings the database schema is automatically updated from the entities TypeORM found. More info is found in the [TypeORM docs](https://typeorm.io/#/connection-options).
+- You can enable schema and query logging in the connection settings. See [the TypeORM docs](https://typeorm.io/#/connection-options) for more information.
