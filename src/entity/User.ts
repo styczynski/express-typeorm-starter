@@ -1,7 +1,9 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn, Unique } from "typeorm";
 import { UserMeta } from "./UserMeta";
 
 @Entity()
+@Unique(["userMetaId", "id"])
+@Unique(["userMetaId"])
 export class User {
   @PrimaryGeneratedColumn()
   id: number;
