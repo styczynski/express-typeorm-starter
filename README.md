@@ -1,25 +1,77 @@
-# Starter projekt with Express and Typeorm
+# This repo is used as reproduction example for Typeorm contraint uniqueness detection issue
 
-This serves as a base for small projects with Express.js and TypeOrm.
+## How to run the project
 
-# Getting started
+```
+    # Start the database
+    $ docker-compose -f ./docker-compose.yml up --abort-on-container-exit
+    # Run migrations
+    $ npm run migrate:up
+    # See changes
+    $ npm run migrate:changes
+```
 
-This is a small project where some things are already set up to get you started. To use it, clone this repo, install [NodeJS](https://nodejs.org/en/) and run `npm install` in the project directory. This will install all dependencies and you can start.
+You can now run:
 
-The project is written in [TypeScript](http://typescriptlang.org/) which transpiles to JavaScript in the `build` directory. To build it the command `npm run build` can be used.
+```
+    $ npm run migrate:generate NewMigration
+```
 
-For a quick development server you can run `npm run start`. Once the server is started it can be accessed at `http://localhost:3000`.
+The migration will fail:
+```
+error: error: relation "UQ_7acfebc1c4dab180b06c83c66b2" already exists
+    at Parser.parseErrorMessage (/Users/pstyczynski/Code/express-typeorm-starter/node_modules/pg-protocol/src/parser.ts:369:69)
+    at Parser.handlePacket (/Users/pstyczynski/Code/express-typeorm-starter/node_modules/pg-protocol/src/parser.ts:188:21)
+    at Parser.parse (/Users/pstyczynski/Code/express-typeorm-starter/node_modules/pg-protocol/src/parser.ts:103:30)
+    at Socket.<anonymous> (/Users/pstyczynski/Code/express-typeorm-starter/node_modules/pg-protocol/src/index.ts:7:48)
+    at Socket.emit (events.js:203:13)
+    at Socket.EventEmitter.emit (domain.js:471:20)
+    at addChunk (_stream_readable.js:294:12)
+    at readableAddChunk (_stream_readable.js:275:11)
+    at Socket.Readable.push (_stream_readable.js:210:10)
+    at TCP.onStreamRead (internal/stream_base_commons.js:166:17) {
+  length: 112,
+  name: 'error',
+  severity: 'ERROR',
+  code: '42P07',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'index.c',
+  line: '866',
+  routine: 'index_create'
+}
+query: ROLLBACK
+(node:85271) UnhandledPromiseRejectionWarning: QueryFailedError: relation "UQ_7acfebc1c4dab180b06c83c66b2" already exists
+    at QueryFailedError.TypeORMError [as constructor] (/Users/pstyczynski/Code/express-typeorm-starter/src/error/TypeORMError.ts:7:9)
+    at new QueryFailedError (/Users/pstyczynski/Code/express-typeorm-starter/src/error/QueryFailedError.ts:9:9)
+    at PostgresQueryRunner.<anonymous> (/Users/pstyczynski/Code/express-typeorm-starter/src/driver/postgres/PostgresQueryRunner.ts:258:19)
+    at step (/Users/pstyczynski/Code/express-typeorm-starter/node_modules/tslib/tslib.js:143:27)
+    at Object.throw (/Users/pstyczynski/Code/express-typeorm-starter/node_modules/tslib/tslib.js:124:57)
+    at rejected (/Users/pstyczynski/Code/express-typeorm-starter/node_modules/tslib/tslib.js:115:69)
+    at processTicksAndRejections (internal/process/task_queues.js:85:5)
+(node:85271) UnhandledPromiseRejectionWarning: Unhandled promise rejection. This error originated either by throwing inside of an async function without a catch block, or by rejecting a promise which was not handled with .catch(). (rejection id: 1)
+(node:85271) [DEP0018] DeprecationWarning: Unhandled promise rejections are deprecated. In the future, promise rejections that are not handled will terminate the Node.js process with a non-zero exit code.
+```
 
-# Used Frameworks and Libraries
+The problem is that if you change the order of constraints when setting up the table Typeorm will try to detect contraints on columns.
+The problematic part is this:
+```
+@Unique(["id", "userMetaId"])
+@Unique(["userMetaId"])
+/* ... */
+@OneToOne(() => UserMeta)
+```
 
-The web server uses [Express.js](https://expressjs.com/) which is based on middlewares. A json middleware is included and already set up so the API can send and receive JSON responses and requests.
+The OneToOne relation requires unique contraint on the `userMetaId` column.
+However if we create `["id", "userMetaId"]` constaint and then `["userMetaId"]`, typeorm will catch only the first one
+and decide that the contraint is composite so the column is not unique.
 
-To keep things simple [SQLite](https://www.sqlite.org/) is used as a database. As ORM [TypeORM](https://typeorm.io/) which plays nicely with `TypeScript`.
-
-# Tips
-
-- With `npm run start` [TS Node](https://github.com/TypeStrong/ts-node) is used to directly run the code. Normally you would have to transpile it first (you can do so with `npm run build`) but `TS-Node` will transpile files on the fly. 
-- Database configuration is done in `ormconfig.json` and when you run the server with `TS Node` it will automatically be picked up and used for connection. You can also manually configure the connection directly in the code.
-- If you want to transpile manually and run the transpiled code yourself (for example with `node build/index.js`) you'll have to provide database configuration otherwise, since the default conifugration points to the directory containing the `TypeScript` files for entities. See [the TypeORM docs](https://typeorm.io/#/connection-options) for more information.
-- If `synchronize: true` is set in the TypeORM connection settings the database schema is automatically updated from the entities TypeORM found. More info is found in the [TypeORM docs](https://typeorm.io/#/connection-options).
-- You can enable schema and query logging in the connection settings. See [the TypeORM docs](https://typeorm.io/#/connection-options) for more information.
