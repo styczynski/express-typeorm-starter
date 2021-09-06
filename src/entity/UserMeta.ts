@@ -3,7 +3,7 @@ import { User } from "./User";
 
 @Entity()
 export class UserMeta {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn({ type:"bigint" })
   id: number;
 
   @Column()
@@ -17,5 +17,5 @@ export class UserMeta {
 
   @OneToOne(() => User)
   @JoinColumn({ name: "userId", referencedColumnName: "id" })
-  meta: User;
+  user: User;
 }

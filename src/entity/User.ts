@@ -2,10 +2,10 @@ import { Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn, Unique } 
 import { UserMeta } from "./UserMeta";
 
 @Entity()
-@Unique(["userMetaId", "id"])
+@Unique(["id", "userMetaId"])
 @Unique(["userMetaId"])
 export class User {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn({ type:"bigint" })
   id: number;
 
   @Column()
@@ -22,5 +22,6 @@ export class User {
 
   @OneToOne(() => UserMeta)
   @JoinColumn({ name: "userMetaId", referencedColumnName: "id" })
-  meta: UserMeta;
+  userMeta: UserMeta;
+  
 }
